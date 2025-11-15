@@ -1,46 +1,79 @@
-import pyautogui
-import time
 import random
+class Player:
+    def __init__(self):
+        self.hp=20
+        self.gold=0
+        self.name="Hero"
 
-# --- IMPORTANT ---
-# FAILSAFE: To stop the script immediately, slam your mouse into the
-#           top-left corner of your screen!
-pyautogui.FAILSAFE = True
+class Enemy:
+    def __init__(self):
+        self.hp=random.randint(5,15)
+        self.damage=random.randint(1,5)
 
-# --- The text you want to type ---
-text_to_type = """
-Hello, I am a very realistic human typing simulation.
-I'm simulating continuous activity directly in your VSCode editor,
-with natural, random pauses between each character.
-You'll notice I pause slightly at punctuation like commas, periods, and new lines.
-This script is currently running on your Chromebook's Linux environment!
-"""
+def encounter(player):
+    enemy=Enemy()
+    print("An enemy appeared!")
+    while enemy.hp>0 and player.hp>0:
+        print(f"Player HP:{player.hp} Enemy HP:{enemy.hp}")
+        choice=input("Attack or Run? ").lower()
+        if choice=="attack":
+            dmg=random.randint(2,6)
+            enemy.hp-=dmg
+            print(f"You dealt {dmg} damage!")
+            if enemy.hp>0:
+                player.hp-=enemy.damage
+                print(f"Enemy hits you for {enemy.damage}!")
+        elif choice=="run":
+            if random.random()<0.5:
+                print("You escaped!")
+                return
+            else:
+                print("You failed to run!")
+                player.hp-=enemy.damage
+        else:
+            print("Invalid choice.")
+    if player.hp<=0:
+        print("You died!")
+    else:
+        reward=random.randint(1,10)
+        player.gold+=reward
+        print(f"Enemy defeated! You got {reward} gold.")
 
-# --- GET READY ---
-# Gives you 5 seconds to click on the editor window where you want the typing to start.
-print("--- Starting Human Typer Script ---")
-print("Click on your VSCode editor window NOW. You have 5 seconds...")
-time.sleep(5)
-print("Typing started...")
+def find_treasure(player):
+    gold=random.randint(5,15)
+    player.gold+=gold
+    print(f"You found a treasure chest with {gold} gold!")
 
+def trap(player):
+    dmg=random.randint(1,5)
+    player.hp-=dmg
+    print(f"You stepped on a trap and lost {dmg} HP!")
 
-# --- The "Human" Typing Loop ---
-for char in text_to_type:
-    # 1. Type the character
-    pyautogui.write(char)
-    
-    # 2. Calculate a base random delay (30ms to 120ms)
-    delay = random.uniform(0.03, 0.12)
-    
-    # 3. Add extra human-like pauses for certain characters
-    if char in [',', '.', '?', '!']:
-        delay += random.uniform(0.15, 0.35) # Longer pause for punctuation
-    elif char == ' ':
-        delay += random.uniform(0.02, 0.08)  # Small hesitation at spaces
-    elif char == '\n':
-        delay += random.uniform(0.4, 0.9)  # "Thinking" pause for a new line
-        
-    # 4. Apply the calculated delay
-    time.sleep(delay)
+def random_event(player):
+    events=[encounter,find_treasure,trap,lambda p:print("Nothing happened.")]
+    event=random.choice(events)
+    event(player)
 
-print("Typing simulation finished.")
+def game_loop():
+    player=Player()
+    print("Welcome to the Dungeon!")
+    while True:
+        print(f"\nHP:{player.hp} Gold:{player.gold}")
+        action=input("Move forward? (y/n) ").lower()
+        if action=="y":
+            random_event(player)
+            if player.hp<=0:
+                print("Game Over.")
+                break
+        elif action=="n":
+            print("You leave the dungeon.")
+            break
+        else:
+            print("Invalid input.")
+
+    print("\nFinal Stats:")
+    print(f"HP:{player.hp}")
+    print(f"Gold:{player.gold}")
+
+if __name__=="__main__":
+    game_loop()
